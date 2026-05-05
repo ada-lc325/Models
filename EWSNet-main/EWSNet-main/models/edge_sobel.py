@@ -2,36 +2,34 @@ import torch
 torch.set_printoptions(profile='full')
 import numpy as np
 from torch import nn
-from PIL import Image
-from torch.autograd import Variable
 import torch.nn.functional as F
 
 
-def Gedge_map(im,device):
+def Gedge_map(im, device):
 
     conv_op = nn.Conv2d(3, 3, kernel_size=3, padding=1, bias=False)
     sobel_kernel = np.array([[-1, 0, 1], [-2, 0, 2], [-1, 0, 1]], dtype='float32')
     sobel_kernel = sobel_kernel.reshape((1, 1, 3, 3))
     conv_op.weight.data = torch.from_numpy(sobel_kernel).to(device)
-    edge_detect = torch.abs(conv_op(Variable(im)))
+    edge_detect = torch.abs(conv_op(im))
 
     conv_op1 = nn.Conv2d(3, 3, kernel_size=3, padding=1, bias=False)
     sobel_kernel1 = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]], dtype='float32')
     sobel_kernel1 = sobel_kernel1.reshape((1, 1, 3, 3))
     conv_op1.weight.data = torch.from_numpy(sobel_kernel1).to(device)
-    edge_detect1 = torch.abs(conv_op1(Variable(im)))
+    edge_detect1 = torch.abs(conv_op1(im))
 
     conv_op2 = nn.Conv2d(3, 3, kernel_size=3, padding=1, bias=False)
     sobel_kernel2 = np.array([[2, 1, 0], [1, 0, -1], [0, -1, -2]], dtype='float32')
     sobel_kernel2 = sobel_kernel2.reshape((1, 1, 3, 3))
     conv_op2.weight.data = torch.from_numpy(sobel_kernel2).to(device)
-    edge_detect2 = torch.abs(conv_op2(Variable(im)))
+    edge_detect2 = torch.abs(conv_op2(im))
 
     conv_op3 = nn.Conv2d(3, 3, kernel_size=3, padding=1, bias=False)
     sobel_kernel3 = np.array([[0, -1, -2], [1, 0, -1], [2, 1, 0]], dtype='float32')
     sobel_kernel3 = sobel_kernel3.reshape((1, 1, 3, 3))
     conv_op3.weight.data = torch.from_numpy(sobel_kernel3).to(device)
-    edge_detect3 = torch.abs(conv_op3(Variable(im)))
+    edge_detect3 = torch.abs(conv_op3(im))
 
     sobel_out = edge_detect+edge_detect1+edge_detect2+edge_detect3
 

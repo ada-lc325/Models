@@ -18,7 +18,7 @@ class DWTFunction_2D(Function):
 
     @staticmethod
     def backward(ctx, grad_LL, grad_LH, grad_HL, grad_HH):
-        matrix_Low_0, matrix_Low_1, matrix_High_0, matrix_High_1 = ctx.saved_variables
+        matrix_Low_0, matrix_Low_1, matrix_High_0, matrix_High_1 = ctx.saved_tensors
         grad_L = torch.add(torch.matmul(grad_LL, matrix_Low_1.t()),
                            torch.matmul(grad_LH, matrix_High_1.t()))
         grad_H = torch.add(torch.matmul(grad_HL, matrix_Low_1.t()),
@@ -43,7 +43,7 @@ class IDWTFunction_2D(Function):
 
     @staticmethod
     def backward(ctx, grad_output):
-        matrix_Low_0, matrix_Low_1, matrix_High_0, matrix_High_1 = ctx.saved_variables
+        matrix_Low_0, matrix_Low_1, matrix_High_0, matrix_High_1 = ctx.saved_tensors
         grad_L = torch.matmul(matrix_Low_0, grad_output)
         grad_H = torch.matmul(matrix_High_0, grad_output)
         grad_LL = torch.matmul(grad_L, matrix_Low_1)
