@@ -208,6 +208,10 @@ class ResUnet(nn.Module):
         self.msp=ASPP(in_channel=512,depth=512)
         # --------------------------------------MSP Module-------------------------------------------
 
+        # Attention modules registered as submodules (not instantiated per forward call)
+        self.attn_x3 = AttentionModule(in_planes=filters[2])
+        self.attn_x2 = AttentionModule(in_planes=filters[1])
+        self.attn_x1 = AttentionModule(in_planes=filters[0])
 
     def forward(self, x):
 
@@ -228,16 +232,13 @@ class ResUnet(nn.Module):
         # x4=self.upsample_1(x4)
 
         x4 = self.upsample_1(self.msp(self.reduce(torch.cat([x1_msp,x2_msp,x3_msp,x4],dim=1))))#torch.Size([1, 512, 64, 64])
-        x5 = torch.cat([x4, AttentionModule(in_planes=x3.shape[1]).to(self.device)(x3)], dim=1)
-        # x5 = torch.cat([x4, x3], dim=1)
+        x5 = torch.cat([x4, self.attn_x3(x3)], dim=1)
         x6 = self.up_residual_conv1(x5)
         x6 = self.upsample_2(x6)#torch.Size([1, 256, 128, 128])
-        x7 = torch.cat([x6, AttentionModule(in_planes=x2.shape[1]).to(self.device)(x2)], dim=1)
-        # x7 = torch.cat([x6,x2],dim=1)
+        x7 = torch.cat([x6, self.attn_x2(x2)], dim=1)
         x8 = self.up_residual_conv2(x7)
         x8 = self.upsample_3(x8)
-        x9 = torch.cat([x8, AttentionModule(in_planes=x1.shape[1]).to(self.device)(x1)], dim=1)
-        # x9 = torch.cat([x8,x1],dim=1)
+        x9 = torch.cat([x8, self.attn_x1(x1)], dim=1)
 
         x10 = self.up_residual_conv3(x9)
 

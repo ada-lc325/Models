@@ -41,10 +41,10 @@ class DownSampling(nn.Module):
 
 # 基于小波变换的下采样技术
 class DownSampling_wa(nn.Module):
-    def __init__(self, C,device):
+    def __init__(self, C, device):
         super(DownSampling_wa, self).__init__()
-        self.dev=device
-        self.wa=wa_module(device=self.dev)
+        self.dev = device
+        self.wa = wa_module(device=self.dev, channel_in=C)
         self.Up = nn.Conv2d(C, C // 2, 1, 1)
         self.pool = nn.MaxPool2d(kernel_size=2)
     def forward(self, x):
