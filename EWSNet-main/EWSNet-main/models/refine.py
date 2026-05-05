@@ -48,8 +48,8 @@ class DownSampling_wa(nn.Module):
         self.Up = nn.Conv2d(C, C // 2, 1, 1)
         self.pool = nn.MaxPool2d(kernel_size=2)
     def forward(self, x):
-        down_fea,skip_fea=self.wa(x)[0],self.wa(x)[1]
-        return down_fea,skip_fea
+        down_fea, skip_fea = self.wa(x)   # single call — was called twice before
+        return down_fea, skip_fea
 
 
 
@@ -95,17 +95,17 @@ class denosing_module(nn.Module):
         self.pred = torch.nn.Conv2d(64, 1, 3, 1, 1)
 
 
-    # 这是采用小波变换模块的前向传播
     def forward(self, x):
-        R1 = self.C1(x)#torch.Size([1, 64, 512, 512])
-        R2 = self.C2(self.D1(R1)[0])#torch.Size([1, 128, 256, 256])
-        R3 = self.C3(self.D2(R2)[0])#torch.Size([1, 256, 128, 128])
-        R4 = self.C4(self.D3(R3)[0])#torch.Size([1, 512, 64, 64])
+        R1 = self.C1(x)
+        d1_down, d1_skip = self.D1(R1)   # cache: was called twice (lines R2 + O3)
+        R2 = self.C2(d1_down)
+        d2_down, d2_skip = self.D2(R2)   # cache: was called twice (lines R3 + O2)
+        R3 = self.C3(d2_down)
+        R4 = self.C4(self.D3(R3)[0])
 
-        # skip feature是小波变换的底层信号
-        O2 = self.C7(self.U2(R4,self.C3(self.D2(R2)[1])))
-        O3 = self.C8(self.U3(O2,self.C2(self.D1(R1)[1])))
-        O4 = self.C9(self.U4(O3,R1))
+        O2 = self.C7(self.U2(R4, self.C3(d2_skip)))
+        O3 = self.C8(self.U3(O2, self.C2(d1_skip)))
+        O4 = self.C9(self.U4(O3, R1))
 
         ## 没有小波变换的skip feature
         # O2 = self.C7(self.U2(R4, R3))
